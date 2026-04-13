@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package user_service.v1;
+
+// HTTP API request and response messages for User Service
+
+// ============ Custodial Wallet ============
+
+// Inner data structure
+message CustodialAddress {
+  string address = 1;
+  string chain_id = 2;
+}
+
+// API response wrapper for GetCustodialAddress endpoint
+message GetCustodialAddressResponse {
+  bool success = 1;
+  CustodialAddress data = 2;
+  string timestamp = 3;
+}
+
+// ============ Trading Accounts ============
+
+// Trading account data structure
+message TradingAccount {
+  string id = 1;
+  string chain_id = 2;
+  string account_address = 3;
+  bool is_active = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  optional string last_synced_at = 7;
+}
+
+// Request for refreshing trading accounts
+message RefreshTradingAccountsRequest {
+  optional string chain_id = 1; // CAIP-2 format, null means refresh all chains
+}
+
+// Response for refresh trading accounts
+message RefreshTradingAccountsResponse {
+  string user_id = 1;
+  repeated string refreshed_chains = 2;
+  repeated TradingAccount accounts = 3;
+}
+
+// User information structure (matches UserInfo in user-service)
+message UserInfo {
+  string id = 1;
+  string address = 2;
+  optional string chain_id = 3;
+  optional string email = 4;
+  optional string username = 5;
+  optional string display_name = 6;
+  optional string avatar_url = 7;
+  string created_at = 8;
+  optional string last_login_at = 9;
+}
+
+// ============ Custodial Signing ============
+
+// Request for signing a transaction with custodial wallet
+message WalletCustodialSignRequest {
+  string transaction_bytes = 1; // Base64 encoded transaction bytes
+  string chain_id = 2; // CAIP-2 format (e.g., "solana:mainnet-beta", "solana:devnet")
+}
+
+// Response for custodial transaction signing
+message WalletCustodialSignResponse {
+  string signature = 1;          // Transaction signature as string
+  string signed_transaction = 2; // Base64 encoded signed transaction bytes
+}
+
+// ============ Authentication & Token Management ============
+
+// Request for refreshing access token
+message AuthRefreshTokenRequest {
+  string refresh_token = 1; // UUID format refresh token
+}
+
+// Response for refreshing access token
+message AuthRefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;      // "Bearer"
+  uint64 expires_in = 4;      // Token expiration time in seconds
+}

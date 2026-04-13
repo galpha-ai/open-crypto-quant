@@ -1,0 +1,40 @@
+spot_price:
+  # Polymarket RTDS WebSocket endpoint
+  wss_endpoint: "wss://ws-live-data.polymarket.com"
+
+  # Cryptocurrency symbols to subscribe to
+  symbols:
+    - BTCUSDT
+    - ETHUSDT
+    - SOLUSDT
+    - XRPUSDT
+
+  # Health monitoring configuration
+  health_monitoring:
+    enabled: true
+    check_interval_secs: 30          # Check health every 30 seconds
+    min_updates_per_minute: 4        # Minimum updates per minute (1 per symbol)
+    event_tracking_window_secs: 60   # Track event rate over last 60 seconds
+
+redis:
+  # Redis connection URL (using Docker Compose service name)
+  url: "redis://redis:6379"
+
+  # Redis LIST queues for spot price updates (LPUSH with LTRIM)
+  queues:
+    - name: "spot_price:updates"
+      max_length: 10000
+
+  # Redis STREAM configurations (XADD with XTRIM)
+  streams:
+    - name: "spot_price:stream"
+      max_length: 10000
+
+  # Redis PUBSUB channels (PUBLISH)
+  pubsub:
+    channels:
+      - "spot_price:pubsub"
+
+metrics:
+  # Prometheus HTTP server port (different from solana-sub: 9091, polymarket-sub: 9092)
+  port: 9093

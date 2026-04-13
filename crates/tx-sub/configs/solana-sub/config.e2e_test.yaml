@@ -1,0 +1,31 @@
+grpc:
+  endpoint: "https://your-grpc-endpoint:10000"
+  x_token: "your-x-token"
+  # Add Bonk program ID to the list of programs to monitor
+  program_ids:
+    - "LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj"  # Bonk program ID
+
+# Minimal Redis config - will be replaced by test printer
+redis:
+  url: "redis://localhost:6379"
+  queues: []
+
+# Disable transaction persistence for e2e test
+persist_tx_redis:
+  enabled: false
+  environment: test
+  ttl_seconds: 600
+
+pumpfun:
+  program_id: "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
+
+# Test-specific settings
+test:
+  # Number of Bonk events to capture before exiting
+  event_count: 5
+  # Print format: "json" or "pretty"
+  print_format: "pretty"
+
+# Metrics disabled for test
+metrics:
+  port: 0

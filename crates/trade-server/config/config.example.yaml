@@ -1,0 +1,166 @@
+# Trade Server Configuration Example
+# Copy this file to config.yaml and modify according to your needs
+
+# Server configuration
+server:
+  # API server bind address
+  bind_address: "0.0.0.0:8080"
+  # Prometheus metrics port
+  metrics_port: 9090
+
+# Redis configuration
+redis:
+  # Redis connection URL
+  url: "redis://localhost:6379"
+  # Token events queue key
+  token_events_key: "token_events"
+  # Optional: Signal persistence queue key
+  signal_persistence_key: "signals"
+
+# Solana configuration
+solana:
+  # Solana RPC URL
+  # Free public RPCs (with rate limits):
+  # - Mainnet: https://api.mainnet-beta.solana.com
+  # - Devnet: https://api.devnet.solana.com
+  # Recommended: Use paid RPC providers (Alchemy, QuickNode, Helius)
+  rpc_url: "https://api.mainnet-beta.solana.com"
+  # Optional: WebSocket URL for subscriptions
+  # ws_url: "wss://api.mainnet-beta.solana.com"
+
+# Wallet configuration
+wallet:
+  # Path to Solana keypair JSON file
+  # Generate with: solana-keygen new --outfile ~/.config/solana/trade-wallet.json
+  keypair_path: "~/.config/solana/id.json"
+
+# Position management configuration
+position:
+  # Amount of SOL to use for each trade
+  trade_amount_sol: 0.1
+  # Initial SOL balance for tracking (should be >= trade_amount_sol)
+  initial_sol: 10.0
+  # Maximum holding period in seconds
+  max_holding_period_secs: 3600  # 1 hour
+  # Maximum number of open positions at once
+  max_open_positions: 10
+
+  # Exit strategy configuration
+  exit_strategy:
+    # Strategy type: noop | configurable
+    # - noop: No automatic exit (positions must be closed manually)
+    # - configurable: Automatic exit based on take profit, stop loss, and timeout
+    strategy_type: noop
+
+    # Maximum sell failures before force exit (applies to all strategies)
+    max_sell_failures: 3
+
+    # The following settings only apply when strategy_type = configurable
+    # Uncomment and adjust these if using configurable strategy:
+    # take_profit_pct: 0.20      # Take profit at 20% gain
+    # stop_loss_pct: -0.10       # Stop loss at 10% loss
+    # max_hold_time_secs: 3600   # Max hold time 1 hour
+
+# Trade execution configuration
+execution:
+  # Simulation mode: pure | rpc_based | disabled
+  # - pure: Fully simulated, no actual transactions
+  # - rpc_based: Simulate via RPC, no actual transactions
+  # - disabled: Real trading mode (BE CAREFUL!)
+  simulation_mode: pure
+
+  # Slippage tolerance for buy orders (e.g., 0.05 = 5%)
+  buy_slippage: 0.05
+  # Slippage tolerance for sell orders
+  sell_slippage: 0.05
+
+  # Simulated slippage (for simulation modes)
+  sim_buy_slippage: 0.02
+  sim_sell_slippage: 0.02
+
+  # Skip pre-flight simulation for buy orders (faster but riskier)
+  skip_simulation_for_buy: false
+  # Skip pre-flight simulation for sell orders
+  skip_simulation_when_sell: false
+
+  # Maximum number of real trades (safety limit, only for disabled mode)
+  max_real_trades: 100
+
+  # Compute unit price in micro-lamports (higher = faster confirmation)
+  compute_unit_price: 100000
+  # Compute unit limit (maximum compute units)
+  compute_unit_limit: 200000
+
+  # Transaction maker service configuration
+  txn_maker:
+    # Transaction maker service URL
+    url: "http://localhost:8081"
+    # Connection type: tcp | unix | shadow
+    # - tcp: Standard HTTP connection
+    # - unix: Unix domain socket (faster for local services)
+    # - shadow: Dual-connect for comparison (tcp + unix)
+    connection_type: tcp
+    # Unix socket path (required if connection_type is unix or shadow)
+    # unix_socket_path: "/tmp/txn-maker.sock"
+
+  # Transaction submitter configuration
+  submitter:
+    # Submitter type: solana | jito | bloxroute | zeroslot
+    # - solana: Standard Solana RPC
+    # - jito: Jito block engine (MEV protection)
+    # - bloxroute: BloxRoute submission
+    # - zeroslot: ZeroSlot submission
+    submitter_type: solana
+
+    # Maximum slot latency for leader check (prevents bad leader attacks)
+    max_slot_latency: 10
+
+    # Transaction confirmation timeout in seconds
+    confirmation_timeout_secs: 60
+
+    # Jito configuration (required if submitter_type = jito)
+    # jito:
+    #   block_engine_url: "https://mainnet.block-engine.jito.wtf"
+    #   api_key: "your-jito-api-key"
+    #   buy_tip: 10000    # Tip in lamports for buy orders
+    #   sell_tip: 5000    # Tip in lamports for sell orders
+
+    # BloxRoute configuration (required if submitter_type = bloxroute)
+    # bloxroute:
+    #   api_url: "https://api.blxrbdn.com"
+    #   auth_header: "your-auth-header"
+    #   tip: 10000
+
+    # ZeroSlot configuration (required if submitter_type = zeroslot)
+    # zeroslot:
+    #   api_url: "https://api.zeroslot.io"
+    #   api_key: "your-api-key"
+    #   tip: 10000
+
+  # Leader monitor configuration (prevents sandwich attacks)
+  # leader_monitor:
+  #   enabled: true
+  #   # List of known bad validator public keys (blacklist)
+  #   bad_validators:
+  #     - "BadValidator1Pubkey111111111111111111111111"
+  #     - "BadValidator2Pubkey222222222222222222222222"
+  #   # Leader schedule refresh interval in seconds
+  #   refresh_interval_secs: 60
+
+# Notifier configuration (optional)
+# notifier:
+#   # Telegram bot configuration
+#   telegram:
+#     bot_token: "your-telegram-bot-token"
+#     chat_id: 123456789
+#     # Send notifications for position events (open/close)
+#     notify_positions: true
+#     # Send notifications for signals
+#     notify_signals: false
+
+# Logging configuration
+logging:
+  # Log level: trace | debug | info | warn | error
+  level: "info"
+  # Log format: text | json
+  format: "text"

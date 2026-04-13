@@ -1,0 +1,43 @@
+polymarket:
+  wss_endpoint: "wss://ws-subscriptions-clob.polymarket.com/ws/market"
+
+  # Market discovery settings - automatically discover and subscribe to crypto binary prediction markets
+  market_discovery:
+    enabled: true                        # Enable automatic market discovery
+    api_base_url: "https://gamma-api.polymarket.com"
+    tag_id: 21                           # Crypto tag ID
+    ticker_patterns:                     # Filter patterns for market tickers
+      - "btc-updown-15m-"
+      - "eth-updown-15m-"
+      - "sol-updown-15m-"
+    discovery_interval_secs: 300         # Fetch markets every 5 minutes (won't trigger in 10s test)
+    max_subscriptions: 100               # Limit subscriptions for integration test
+    api_timeout_secs: 30                 # HTTP request timeout
+    api_retry_attempts: 3                # Number of retries for failed requests
+    api_retry_backoff_ms: 1000           # Backoff between retries
+
+  # Health monitoring disabled for integration test
+  health_monitoring:
+    enabled: false
+    check_interval_secs: 60
+    min_events_per_minute: 1
+    event_tracking_window_secs: 120
+
+redis:
+  # Redis connection URL - using localhost for local testing
+  # Note: For integration test, Redis must be running locally
+  url: "redis://127.0.0.1:6379"
+
+  # Redis LIST queues for trade events (RPUSH with LTRIM)
+  trade_queues:
+    - name: "polymarket:trades:integration_test"
+      max_length: 1000
+
+  # Orderbook event queues (for price_change events)
+  orderbook_queues:
+    - name: "polymarket:orderbook:integration_test"
+      max_length: 1000
+
+metrics:
+  # Prometheus HTTP server port
+  port: 9093

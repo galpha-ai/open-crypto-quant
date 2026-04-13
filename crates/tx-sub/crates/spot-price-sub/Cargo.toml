@@ -1,0 +1,54 @@
+[package]
+name = "spot-price-sub"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Workspace dependencies
+common = { path = "../common" }
+popeyes_trading_types = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Metrics
+prometheus = { workspace = true }
+
+# Redis
+redis = { workspace = true }
+
+# Time
+chrono = { workspace = true }
+
+# CLI
+clap = { workspace = true }
+
+# WebSocket
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+native-tls = "0.2"
+
+# Utilities
+futures-util = { workspace = true }
+shellexpand = "3.1"
+
+[[bin]]
+name = "spot-price-sub"
+path = "src/main.rs"
+
+[[bin]]
+name = "spot-price-integration-test"
+path = "src/bin/integration_test.rs"

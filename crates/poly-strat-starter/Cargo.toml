@@ -1,0 +1,22 @@
+[package]
+name = "poly-strat-starter"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "poly-strat"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+popeyes_trading_types = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+solana-sdk = "2.1.9"
+tokio = { version = "1", features = ["full"] }
+trade_server = { path = "../trade-server" }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

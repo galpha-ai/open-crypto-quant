@@ -1,0 +1,47 @@
+[package]
+name = "polymarket-sub"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Workspace dependency on common crate
+common = { path = "../common" }
+
+# Shared dependencies from workspace
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+prometheus = { workspace = true }
+redis = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
+
+# External trading types
+popeyes_trading_types = { workspace = true }
+
+# WebSocket client dependencies
+tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
+futures-util = { workspace = true }
+
+# HTTP client for market discovery
+reqwest = { workspace = true }
+
+# Tokio utilities
+tokio-util = { workspace = true }
+
+# Rustls for TLS crypto provider
+rustls = { workspace = true }
+
+[[bin]]
+name = "polymarket-sub"
+path = "src/main.rs"
+
+[[bin]]
+name = "polymarket-integration-test"
+path = "src/bin/integration_test.rs"

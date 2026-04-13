@@ -1,0 +1,51 @@
+polymarket:
+  wss_endpoint: "wss://ws-subscriptions-clob.polymarket.com/ws/market"
+
+  # Market discovery settings - automatically discover and subscribe to crypto binary prediction markets
+  market_discovery:
+    enabled: true                        # Enable automatic market discovery
+    api_base_url: "https://gamma-api.polymarket.com"
+    tag_id: 21                           # Crypto tag ID
+    ticker_patterns:                     # Filter patterns for market tickers
+      - "btc-updown-15m-"
+      - "eth-updown-15m-"
+      - "sol-updown-15m-"
+      - "xrp-updown-15m-"
+    discovery_interval_secs: 300         # Fetch markets every 5 minutes
+    max_subscriptions: 1000              # Maximum asset IDs to subscribe (safety limit, will be tuned down)
+    api_timeout_secs: 30                 # HTTP request timeout
+    api_retry_attempts: 3                # Number of retries for failed requests
+    api_retry_backoff_ms: 1000          # Backoff between retries
+
+health_monitoring:
+  enabled: true
+  check_interval_secs: 60        # Check health every 60 seconds
+  min_events_per_minute: 1       # Exit if event rate drops below 1 event/min
+  event_tracking_window_secs: 120  # Track event rate over last 2 minutes
+
+redis:
+  # Redis connection URL (using Docker Compose service name)
+  url: "redis://redis:6379"
+
+  # Redis LIST queues for trade events (RPUSH with LTRIM)
+  trade_queues:
+    - name: "polymarket:trades"
+      max_length: 1000
+
+  # Redis pubsub channels for trade events (allows multiple consumers)
+  trade_pubsub:
+    channels:
+      - "polymarket:trades:pubsub"
+
+  orderbook_queues:
+    - name: "polymarket:orderbook"
+      max_length: 1000
+
+  # Redis pubsub channels for orderbook events (allows multiple consumers)
+  orderbook_pubsub:
+    channels:
+      - "polymarket:orderbook:pubsub"
+
+metrics:
+  # Prometheus HTTP server port (different from solana-sub: 9091)
+  port: 9092

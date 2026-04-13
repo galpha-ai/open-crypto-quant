@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package position_manager.v1;
+
+// Request for getting positions
+message GetPositionsRequest {
+  string wallet = 1;
+  repeated string tokens = 2;        // optional, filter by specific tokens
+  string chainId = 3;                // required, query specific chain (CAIP-2 format)
+  optional bool showPrice = 4;       // optional, controls price fetching (default: true)
+}
+
+// Response containing positions
+message GetPositionsResponse {
+  string wallet = 1;
+  repeated Position positions = 2;
+  uint64 timestamp = 3;
+  string chainId = 4;                // chain identifier for this response
+}
+
+// A single position
+message Position {
+  string symbol = 1;
+  string balance = 2;
+  string contractAddress = 3;     // Token contract address (Solana: mint, EVM: contract)
+  uint32 decimals = 4;
+  optional double currentPrice = 5;  // Current price per token in USD
+  optional string totalValue = 6;    // Total USD value of the position
+  optional string logo_url = 7;    // Token log url (not support solana)
+  string blockchain = 8;
+  string tokenName = 9;
+}

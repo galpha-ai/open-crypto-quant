@@ -1,0 +1,43 @@
+# Local development Docker image for tx-sub workspace
+# This image has runtime dependencies pre-installed
+# The compiled binary is copied from the host during build
+# Using Ubuntu 24.04 for newer GLIBC compatibility (2.39)
+
+FROM ubuntu:24.04
+
+# Install runtime dependencies and patchelf to fix Nix-built binaries
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl3 \
+    curl \
+    patchelf && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+RUN mkdir -p /app
+
+# Set working directory
+WORKDIR /app
+
+# Build argument for binary path (e.g., target/debug/solana-sub or target/debug/polymarket-sub)
+ARG BINARY_PATH=target/debug/solana-sub
+
+# Extract binary name from path for generic handling
+RUN echo "Building with binary: ${BINARY_PATH}"
+
+# Copy the pre-built binary from the host
+COPY ${BINARY_PATH} /app/binary
+
+# Patch the binary to use the system's dynamic linker instead of Nix's
+# This is necessary when the binary was built in a Nix environment
+RUN patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 /app/binary || true
+
+# Make binary executable
+RUN chmod +x /app/binary
+
+# Config file will be mounted as a volume:
+#   - ./configs/{subscriber}/config.yaml:/app/config.yaml:ro
+
+# Default command (will be overridden by docker-compose)
+CMD ["/app/binary", "-c", "/app/config.yaml"]

@@ -1,0 +1,42 @@
+{
+  "name": "@galpha/proto",
+  "version": "1.0.4",
+  "description": "Protocol Buffers definitions for Galpha services with TypeScript support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "proto"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "mkdir": "mkdir -p dist",
+    "generate": "npm run clean && npm run mkdir && npm run generate:js && npm run generate:ts && npm run compile",
+    "generate:js": "pbjs -t static-module -w commonjs --keep-case -o dist/proto.js proto/ledger/v1/http.proto proto/position_manager/v1/rpc.proto proto/user_service/v1/http.proto",
+    "generate:ts": "pbts -o dist/proto.d.ts dist/proto.js && npm run generate:index",
+    "generate:index": "node scripts/generate-index.js",
+    "compile": "tsc",
+    "test": "node ts/tests/package-test.js && ts-node ts/tests/package-test.ts",
+    "test:js": "node ts/tests/package-test.js",
+    "test:ts": "ts-node ts/tests/package-test.ts",
+    "build": "npm run generate",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "protobuf",
+    "grpc",
+    "galpha",
+    "typescript"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "protobufjs": "^7.4.0",
+    "protobufjs-cli": "^1.1.3",
+    "typescript": "^5.1.6",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.0.0"
+  },
+  "dependencies": {
+    "protobufjs": "^7.4.0"
+  }
+}

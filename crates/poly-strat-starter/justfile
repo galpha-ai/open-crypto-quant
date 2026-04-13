@@ -1,0 +1,15 @@
+# Build the strategy
+build:
+    cargo build
+
+# Build in release mode
+build-release:
+    cargo build --release
+
+# Run backtest (example with placeholder paths)
+run *ARGS:
+    cargo run -- {{ARGS}}
+
+# Clean build artifacts
+clean:
+    cargo clean

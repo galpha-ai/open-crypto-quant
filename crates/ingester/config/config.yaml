@@ -1,0 +1,13 @@
+redis:
+  url: "unix:///var/run/redis/redis.sock"
+  queues:
+    - name: "ch_tx_events_v2"
+      max_length: 1000
+
+clickhouse:
+  url: "http://localhost:18123"
+  user: "default"
+  password: ""
+  db: "solana"
+  table: "events"
+  batch_size: 128

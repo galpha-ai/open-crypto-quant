@@ -1,0 +1,85 @@
+version: 2
+
+inputs:
+  # A root directory that can be used by path templates.
+  # Scripts should allow overriding this via CLI / env.
+  data_root: /home/zfeng/popeyes/data-pipeline/local-data
+
+  # Completeness checks run against an updates-applied synthetic BBO parquet.
+  # This can be generated via `poly-mm-backtest` (see `research/orderbook-data.md`).
+  #
+  # Either set `synthetic_bbo_path` explicitly OR rely on `synthetic_bbo_template`.
+  synthetic_bbo_path: ""
+  synthetic_bbo_template: "{data_root}/polymarket/synthetic_bbo/date={date}/synthetic_bbo.parquet"
+
+  # Optional: record upstream raw stream locations for audit/debug (not used by gating rules directly).
+  snapshots_template: "{data_root}/polymarket/snapshots/date={date}/snapshots.parquet"
+  updates_template: "{data_root}/polymarket/updates/date={date}/updates.parquet"
+  spot_prices_path: ""
+  spot_prices_template: "{data_root}/spot_prices/daily/date={date}/spot_prices.parquet"
+
+universe:
+  # Which tickers are considered for completeness (regex list applied to `ticker`).
+  # Research 004 focuses on BTC 15m up/down markets.
+  ticker_regexes:
+    - "^btc-updown-15m-\\d+$"
+
+  # A ticker is only eligible if all required outcomes pass gating.
+  required_outcomes: ["Up", "Down"]
+
+event_time:
+  # Horizons that must remain labelable (fresh at t and at t+h) for completeness scoring.
+  horizons_s: [0.5, 1.0, 1.5, 2.0]
+
+  # Maximum allowed as-of gap (staleness) for quotes at t+h.
+  max_gap_ms: 2000
+
+  # If true, completeness requires the quote at t AND the quote at t+max(horizons_s) to be fresh.
+  # This aligns with event-time labeling where we drop times without a valid forward mid.
+  require_forward_freshness_for_max_horizon: true
+
+validation:
+  # Quote validity checks (kept intentionally non-opinionated; avoid fabricating/repairing).
+  require_best_bid_ask_non_null: true
+  require_non_negative_spread: true
+
+  # Probability-like price bounds for Polymarket. Set to false to disable bounds checking.
+  enforce_price_bounds: true
+  min_price: 0.0
+  max_price: 1.0
+
+thresholds:
+  # Score is computed per ticker as min(usable_ratio(Up), usable_ratio(Down)).
+  # usable_ratio(outcome) is the fraction of event-time rows that are labelable (fresh at t and t+h).
+  min_usable_ratio: 0.98
+
+  # Guardrails so tiny/incomplete windows don't accidentally pass on small samples.
+  min_usable_events: 1000
+
+  # If the last valid quote arrives too far before market end, exclude the ticker.
+  # This helps detect early liquidity drop-offs even if the in-window coverage is high.
+  max_end_gap_ms: 300000
+
+  # Exclude tickers with long outage gaps (minutes-down regime).
+  max_inter_event_gap_ms: 120000
+
+spot:
+  # Spot completeness gating (required for spot-derived features).
+  enabled: true
+  symbol: "BTCUSDT"
+
+  # Maximum allowed as-of gap for spot prices on the grid (staleness).
+  max_gap_ms: 2000
+
+  # Minimum fraction of event-time rows with a fresh spot price.
+  min_usable_ratio: 0.9
+
+  # Guardrail against tiny windows (mirrors thresholds.min_usable_events).
+  min_usable_events: 1000
+
+outputs:
+  # Default output locations for the manifest builder (Step 3).
+  out_dir_template: ./output/data_completeness/date={date}
+  manifest_csv: allowlist.csv
+  exclusions_csv: exclusions.csv
+  summary_json: summary.json

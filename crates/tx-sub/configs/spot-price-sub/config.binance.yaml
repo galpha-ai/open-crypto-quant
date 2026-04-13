@@ -1,0 +1,41 @@
+spot_price:
+  # Data source: "binance" or "rtds"
+  data_source: "binance"
+
+  # Binance WebSocket endpoint
+  wss_endpoint: "wss://stream.binance.com:9443/ws"
+
+  # Cryptocurrency symbols to subscribe to
+  symbols:
+    - BTCUSDT
+    - ETHUSDT
+
+  # Health monitoring configuration
+  health_monitoring:
+    enabled: true
+    check_interval_secs: 30
+    min_updates_per_minute: 10        # Binance has much higher update rate
+    event_tracking_window_secs: 60
+
+redis:
+  # Redis connection URL
+  url: "redis://localhost:6379"
+
+  # Redis LIST queues
+  queues:
+    - name: "spot_price:updates"
+      max_length: 10000
+
+  # Redis STREAM configurations
+  streams:
+    - name: "spot_price:stream"
+      max_length: 10000
+
+  # Redis PUBSUB channels
+  pubsub:
+    channels:
+      - "spot_price:pubsub"
+
+metrics:
+  # Prometheus HTTP server port
+  port: 9093

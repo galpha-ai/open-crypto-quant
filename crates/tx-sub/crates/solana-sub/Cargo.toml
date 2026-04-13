@@ -1,0 +1,67 @@
+[package]
+name = "solana-sub"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Workspace dependency on common crate
+common = { path = "../common" }
+
+# Shared dependencies from workspace
+redis = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
+serde_yaml = { workspace = true }
+prometheus = { workspace = true }
+warp = { workspace = true }
+
+# Solana-specific dependencies
+yellowstone-grpc-client = { workspace = true }
+yellowstone-grpc-proto = { workspace = true }
+solana-sdk = { workspace = true }
+solana-transaction-status-client-types = { workspace = true }
+solana-program = { workspace = true }
+solana-rpc-client = { workspace = true }
+solana-client = { workspace = true }
+spl-token = { workspace = true }
+spl-associated-token-account = { workspace = true }
+serum_dex = { workspace = true }
+
+# Data handling dependencies
+borsh = { workspace = true }
+bs58 = { workspace = true }
+hex = { workspace = true }
+base64 = { workspace = true }
+bincode = { workspace = true }
+bytemuck = { workspace = true }
+safe-transmute = { workspace = true }
+serde_bytes = { workspace = true }
+
+# Utility dependencies
+futures-util = { workspace = true }
+rustls = { workspace = true }
+clickhouse = { workspace = true }
+time = { workspace = true }
+u128 = { workspace = true }
+num-traits = { workspace = true }
+once_cell = { workspace = true }
+num-derive = { workspace = true }
+arrayref = { workspace = true }
+arrform = { workspace = true }
+uint = { workspace = true }
+isahc = { workspace = true }
+
+# External trading types
+popeyes_trading_types = { workspace = true }
+
+[[bin]]
+name = "solana-sub"
+path = "src/main.rs"

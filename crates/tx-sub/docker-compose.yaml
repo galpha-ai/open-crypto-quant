@@ -1,0 +1,87 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: tx-sub-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - tx-sub-network
+
+  solana-sub:
+    profiles:
+      - solana
+      - all
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.local
+      args:
+        - BINARY_PATH=target/debug/solana-sub
+    image: tx-sub-local:latest
+    container_name: tx-sub-solana
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount the local configuration file only
+      - ./configs/solana-sub/config.local.yaml:/app/config.yaml:ro
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+    command: ["/app/binary", "-c", "/app/config.yaml"]
+    ports:
+      - "9094:9094"  # Metrics port
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9094/metrics || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - tx-sub-network
+    restart: unless-stopped
+
+  polymarket-sub:
+    profiles:
+      - polymarket
+      - all
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.local
+      args:
+        - BINARY_PATH=target/debug/polymarket-sub
+    image: polymarket-sub-local:latest
+    container_name: tx-sub-polymarket
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount the local configuration file only
+      - ./configs/polymarket-sub/config.yaml:/app/config.yaml:ro
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+    command: ["/app/binary", "-c", "/app/config.yaml"]
+    ports:
+      - "9092:9092"  # Metrics port
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9092/metrics || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - tx-sub-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  tx-sub-network:
+    driver: bridge

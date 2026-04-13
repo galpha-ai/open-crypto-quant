@@ -1,0 +1,53 @@
+# Rust build artifacts
+# Note: For docker/Dockerfile (production), the entire codebase is built from scratch
+# For docker/Dockerfile.local (development), we need to include the pre-built binary
+target/*
+!target/debug/
+target/debug/*
+!target/debug/solana-sub
+!target/debug/polymarket-sub
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Kubernetes and deployment
+.kube/
+k8s/
+
+# Nix
+.direnv/
+.envrc
+
+# CI/CD
+.github/
+
+# Test and coverage
+coverage/
+*.profraw
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/

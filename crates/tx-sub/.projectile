@@ -1,0 +1,7 @@
+-target/
+-polycli/polymarket.db
+-polycli/polymarket.db-shm
+-polycli/polymarket.db-wal
+-polycli/node_modules
+-.codanna
+-.fastembed_cache

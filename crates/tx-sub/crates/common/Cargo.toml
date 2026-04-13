@@ -1,0 +1,29 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Core dependencies from workspace
+redis = { workspace = true }
+tokio = { workspace = true }
+prometheus = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Additional shared dependencies
+async-trait = { workspace = true }
+chrono = { workspace = true }
+serde_yaml = { workspace = true }
+warp = { workspace = true }
+
+# Subscriber dependencies
+async-stream = "0.3"
+futures = "0.3"
+hostname = "0.4"
+
+# Trading types
+popeyes_trading_types = { workspace = true }

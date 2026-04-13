@@ -1,0 +1,223 @@
+syntax = "proto3";
+
+package ledger.v1;
+
+// HTTP API request and response messages for Ledger service
+
+// ============ Balance ============
+
+message GetBalanceRequest {
+  // No fields needed - uses user_id from auth context
+}
+
+message GetBalanceResponse {
+  string user_id = 1;
+  string trading_balance = 2;  // available balance
+  string staked_balance = 3;
+  string total_balance = 4;
+  string yield_accumulated = 5;
+  int32 version = 6;
+  string total_earned = 7;  // Total earned from all completed yield distributions
+}
+
+// ============ Stake ============
+
+message StakeRequest {
+  string amount = 1;
+}
+
+message StakeResponse {
+  bool success = 1;
+  string status = 2;
+  string message = 3;
+  string transaction_id = 4;  // UUID
+}
+
+// ============ Unstake ============
+
+message CreateUnstakingRequest {
+  string amount = 1;
+}
+
+message CreateUnstakingResponse {
+  string request_id = 1;  // UUID
+  string unlock_at = 2;  // RFC3339 timestamp
+  string transaction_id = 3;  // UUID
+}
+
+// ============ Withdrawal ============
+
+message CreateWithdrawalRequest {
+  string amount = 1;
+  string asset = 2;
+  optional string chain_id = 3;  // Target chain for withdrawal (CAIP-2 format)
+  optional string destination_address = 4;  // Destination address (null = user's wallet)
+}
+
+message CreateWithdrawalResponse {
+  bool success = 1;
+  string withdrawal_id = 2;  // UUID
+  string transaction_id = 3;  // UUID
+  string asset = 4;
+  string requested_amount = 5;
+  string fee_amount = 6;
+  string net_amount = 7;
+  string actual_withdrawal_amount = 8;
+  string new_trading_balance = 9;
+  string destination_address = 10;
+  string status = 11;
+}
+
+// ============ Transactions ============
+
+message GetUserTransactionsRequest {
+  optional int32 page = 1;
+  optional int32 limit = 2;
+  optional string transaction_type = 3;  // "deposit", "withdrawal", "stake", "unstake", etc.
+  optional string status = 4;  // "pending", "confirmed", "failed"
+}
+
+message Transaction {
+  string id = 1;  // UUID
+  optional string user_id = 2;
+  string transaction_type = 3;
+  string status = 4;
+  optional string blockchain_ref = 5;  // tx_hash
+  optional string chain_id = 6;  // CAIP-2 format
+  optional string amount = 7;  // Extracted from metadata
+  string created_at = 8;  // RFC3339 timestamp
+  string updated_at = 9;  // RFC3339 timestamp
+}
+
+message PaginationInfo {
+  int32 page = 1;
+  int32 limit = 2;
+  int64 total_count = 3;
+  int32 total_pages = 4;
+  bool has_next = 5;
+  bool has_prev = 6;
+}
+
+message GetUserTransactionsResponse {
+  repeated Transaction transactions = 1;
+  PaginationInfo pagination = 2;
+}
+
+// ============ Pending Deposits ============
+
+message AutoWithdrawConfig {
+  string asset = 1;
+  optional string chain_id = 2;  // CAIP-2 format
+  optional string destination_address = 3;
+}
+
+message CreatePendingDepositRequest {
+  string tx_hash = 1;
+  string chain_id = 2;  // CAIP-2 format (e.g., "eip155:1")
+  string asset = 3;
+  string amount = 4;
+  bool auto_stake = 5;
+  optional AutoWithdrawConfig auto_withdraw = 6;
+}
+
+message CreatePendingDepositResponse {
+  string id = 1;  // UUID
+  string status = 2;
+}
+
+message GetPendingDepositsRequest {
+  optional string status = 1;
+  optional int32 limit = 2;
+  optional int32 offset = 3;
+}
+
+message PendingDeposit {
+  string id = 1;  // UUID
+  string tx_hash = 2;
+  string chain_id = 3;
+  string asset = 4;
+  string original_amount = 5;
+  optional string aiusd_amount = 6;
+  bool auto_stake = 7;
+  string status = 8;
+  string created_at = 9;  // RFC3339 timestamp
+  string updated_at = 10;  // RFC3339 timestamp
+}
+
+message GetPendingDepositsResponse {
+  repeated PendingDeposit deposits = 1;
+  int64 total = 2;
+}
+
+// ============ Quote ============
+
+message GetQuoteRequest {
+  string symbol = 1;  // e.g., "BTCUSDT"
+}
+
+message GetQuoteResponse {
+  string symbol = 1;
+  string price = 2;
+}
+
+// ============ TVL ============
+
+message GetTvlRequest {
+  // No fields needed
+}
+
+message GetTvlResponse {
+  string tvl = 1;  // Total value locked
+}
+
+// ============ Gas Top-up ============
+
+message EnsureGasRequest {
+  string chain_id = 1;  // CAIP-2 format (e.g., "eip155:31337")
+  string min_native = 2;  // Minimum native token balance required (e.g., "0.01")
+  optional string idempotency_key = 3;  // Optional idempotency key for the request
+}
+
+message EnsureGasResponse {
+  string action = 1;  // "topped_up" or "noop"
+  string native_before = 2;  // Native balance before top-up
+  string native_after = 3;  // Native balance after top-up
+  string native_delta = 4;  // Amount of native tokens added
+  string aiusd_debited = 5;  // Amount of AIUSD debited
+  optional string tx_hash = 6;  // Transaction hash if topped up
+  optional bool gas_ready = 7;  // Whether gas is ready after polling
+  optional string observed_native_after = 8;  // Observed balance after polling
+  optional int64 wait_ms = 9;  // Milliseconds waited for balance update
+}
+
+// ============ Buy AIUSD ============
+
+message BuyAiusdRequest {
+  string mode = 1;  // "direct" or "tim"
+  string chain_id = 2;  // CAIP-2 format (e.g., "solana:mainnet-beta", "eip155:1")
+  optional string asset = 3;  // Required for direct mode: USDC, USDT, USD1
+  optional string amount = 4;  // Required for direct mode
+  optional string intent = 5;  // Required for tim mode
+  optional uint32 slippage_bps = 6;  // Slippage tolerance in basis points
+  string idempotency_key = 7;  // Idempotency key to prevent duplicate requests
+  bool auto_stake = 8;  // Whether to automatically stake the credited AIUSD
+}
+
+message BuyAiusdResponse {
+  bool success = 1;
+  string transaction_id = 2;  // UUID
+  string mode = 3;  // "direct" or "tim"
+  string aiusd_credited = 4;  // Amount of AIUSD credited
+  string new_aiusd_balance = 5;  // New AIUSD balance after credit
+  string blockchain_tx_id = 6;  // Blockchain transaction hash/signature
+  string created_at = 7;  // RFC3339 timestamp
+  bool auto_staked = 8;  // Whether auto-stake was performed
+  optional string stake_transaction_id = 9;  // Stake transaction ID if auto-stake was performed
+}
+
+// ============ Error Response ============
+
+message ErrorResponse {
+  string error = 1;
+  string message = 2;
+}

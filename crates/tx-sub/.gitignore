@@ -1,0 +1,16 @@
+target/
+p.md
+.kube/
+.envrc
+.direnv/
+
+# Local configuration files
+configs/solana-sub/config.local.yaml
+
+.dir-locals.el
+.codanna/
+.fastembed_cache
+
+polycli/polymarket.db
+polycli/polymarket.db-shm
+polycli/polymarket.db-wal

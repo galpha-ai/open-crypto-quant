@@ -1,0 +1,129 @@
+# Build all workspace crates
+build:
+    cargo build --workspace
+
+# Build specific subscriber
+build-solana:
+    cargo build -p solana-sub
+
+build-polymarket:
+    cargo build -p polymarket-sub
+
+build-spot-price:
+    cargo build -p spot-price-sub
+
+build-common:
+    cargo build -p common
+
+# Test all workspace crates
+test:
+    cargo test --workspace
+
+# Test specific subscriber
+test-solana:
+    cargo test -p solana-sub
+
+test-polymarket:
+    cargo test -p polymarket-sub
+
+test-spot-price:
+    cargo test -p spot-price-sub
+
+test-common:
+    cargo test -p common
+
+# Integration test for Polymarket subscriber
+test-polymarket-integration:
+    @echo "Running Polymarket integration test..."
+    @echo "Prerequisites: Redis must be running (docker compose --profile all up -d redis)"
+    @echo "Cleaning Redis queues..."
+    docker exec tx-sub-redis redis-cli DEL "polymarket:trades:integration_test" "polymarket:orderbook:integration_test" || true
+    cargo run -p polymarket-sub --bin polymarket-integration-test 2>&1 | tee polymarket_integration_test.log
+
+# Integration test for spot-price-sub (WebSocket subscription only, no Redis)
+test-spot-price-integration:
+    @echo "Running spot-price-sub integration test..."
+    @echo "This test connects to Polymarket RTDS API and prints spot price updates for 30 seconds."
+    @echo "No Redis required - tests WebSocket subscription and message parsing only."
+    cargo run -p spot-price-sub --bin spot-price-integration-test 2>&1 | tee spot_price_integration_test.log
+
+# Format all workspace code
+fmt:
+    cargo fmt --all -- --config imports_granularity=Crate,group_imports=StdExternalCrate
+
+# Check all workspace crates
+check:
+    cargo check --workspace
+
+# Run solana subscriber with default config
+run-solana:
+    cargo run -p solana-sub --bin solana-sub -- --config-file configs/solana-sub/config.e2e_test.yaml
+
+# Clean all build artifacts
+clean:
+    cargo clean
+
+# Local development with Docker Compose (all subscribers)
+# Build debug binaries, rebuild Docker images, and start all services
+run-local:
+    cargo build --workspace
+    docker compose --profile all build
+    docker compose --profile all up -d
+    @echo "All services started. View logs with: just logs-local"
+    @echo "Stop services with: just stop-local"
+
+# Run only Solana subscriber with Docker Compose
+run-local-solana:
+    cargo build -p solana-sub
+    docker compose --profile solana build
+    docker compose --profile solana up -d
+    @echo "Solana subscriber started. View logs with: just logs-solana-local"
+    @echo "Stop services with: just stop-local"
+
+# Run only Polymarket subscriber with Docker Compose
+run-local-polymarket:
+    cargo build -p polymarket-sub
+    docker compose --profile polymarket build
+    docker compose --profile polymarket up -d
+    @echo "Polymarket subscriber started. View logs with: just logs-polymarket-local"
+    @echo "Stop services with: just stop-local"
+
+# Stop local Docker Compose services
+stop-local:
+    docker compose --profile all down
+
+# Stop and remove all data (including Redis volume)
+clean-local:
+    docker compose --profile all down -v
+
+# Follow logs from all services
+logs-local:
+    docker compose --profile all logs -f
+
+# Follow logs from solana-sub only
+logs-solana-local:
+    docker compose logs -f solana-sub
+
+# Follow logs from polymarket-sub only
+logs-polymarket-local:
+    docker compose logs -f polymarket-sub
+
+# Follow logs from Redis only
+logs-redis-local:
+    docker compose logs -f redis
+
+# Restart solana-sub service (useful after rebuilding binary)
+restart-solana-local:
+    cargo build -p solana-sub
+    docker compose --profile solana build solana-sub
+    docker compose --profile solana up -d --no-deps solana-sub
+
+# Restart polymarket-sub service (useful after rebuilding binary)
+restart-polymarket-local:
+    cargo build -p polymarket-sub
+    docker compose --profile polymarket build polymarket-sub
+    docker compose --profile polymarket up -d --no-deps polymarket-sub
+
+# Check status of local services
+status-local:
+    docker compose --profile all ps

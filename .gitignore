@@ -24,3 +24,6 @@ Thumbs.db
 # Environment
 .env
 .envrc
+
+# stock-correlation analysis
+tools/stock-correlation/data/

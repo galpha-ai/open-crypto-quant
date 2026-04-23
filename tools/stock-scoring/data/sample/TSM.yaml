@@ -1,0 +1,88 @@
+# Illustrative only — TSM as the foundry bottleneck everyone runs through.
+ticker: TSM
+name: Taiwan Semiconductor Manufacturing
+as_of: 2026-04-01
+conviction: 0.9
+meme_dip: false
+
+signals:
+  jurisdiction_risk: 0.3           # Taiwan geopolitical risk
+  single_point_of_failure: false
+  tariff_fragility: false
+
+  product_one_of_a_kind: true
+  product_highest_growth: false
+  product_largest_share: true
+  leadership_duration_years: 5.0
+  sector_growth_rate: 0.25
+
+  significant_physical_assets: true
+  entrant_build_time_months: 48
+  talent_market_tight: 600000
+
+  datacenter_elasticity: 8.0
+  per_machine_elasticity: 2.0
+
+  can_fill_10x_one_year: false
+  currently_backlogged: true
+
+  gross_margin: 0.56
+
+  buyer_cost_share: 0.15
+
+  big_recent_order: true
+  market_noticed: 0.7
+
+  insider_buying_6mo: false
+  ceo_unrestricted_equity_usd: 50000000
+  insider_pct_of_market_cap: 0.01
+
+  usg_customer_or_grant: true
+  usg_supports_peers: true
+  us_centric_operations: false   # Arizona helps but HQ/ops are Taiwan
+
+  higher_price_new_products: true
+
+  net_debt_to_ebitda: 0.4
+
+  ceo_years_in_role: 4.0
+
+  top_holder_quality: 0.8
+  top_holder_avg_holding_years: 3.0
+
+  analyst_count: 40
+  coverage_momentum: 0.7
+  english_twitter_presence: 0.4
+  chinese_channel_presence: 0.8
+  story_in_one_sentence: 0.9
+  front_page_makes_sense: 0.7
+  has_active_twitter: false
+  commodity_to_growth_transition: 0.4
+
+  smart_fund_accumulation: 0.4
+  confirmed_news_step_function: true
+  credible_rumor_active: 0.2
+
+downside:
+  revenue_concentration_top_client: 0.22    # AAPL+NVDA combined
+  revenue_concentration_top5: 0.60
+  next_gen_replacement_risk: 0.05
+  tech_replaceability: 0.0
+  supplier_squeeze_risk: 0.1
+  tariff_fragility: 0.5
+  export_restriction_fragility: 0.4
+  high_margin_low_moat: 0.0
+  competitive_gap_months: 24
+  float_forced_seller_risk: 0.2
+
+price_action:
+  iv_regime: 0.5
+  options_flow_bullish: 0.5
+  short_interest: 0.02
+  yuan_demand: 0.7
+  cds_default_rate: 0.004
+  hy_debt_volume: 0.8
+  otm_call_oi_surge: 0.4
+  leaps_being_bought: false
+  put_oi_insider_signal: 0.2
+  trend_filter: 0.7

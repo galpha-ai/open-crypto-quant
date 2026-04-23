@@ -1,0 +1,87 @@
+# Illustrative only — intentionally a lower-scoring case to exercise filtering.
+ticker: INTC
+name: Intel
+as_of: 2026-04-01
+conviction: 0.3
+
+signals:
+  jurisdiction_risk: 0.9
+  single_point_of_failure: false
+  tariff_fragility: false
+
+  product_one_of_a_kind: false
+  product_highest_growth: false
+  product_largest_share: false
+  leadership_duration_years: 1.0
+  sector_growth_rate: 0.15
+
+  significant_physical_assets: true
+  entrant_build_time_months: 48
+  talent_market_tight: 400000
+
+  datacenter_elasticity: 3.0
+  per_machine_elasticity: 1.5
+
+  can_fill_10x_one_year: true
+  currently_backlogged: false
+
+  gross_margin: 0.38
+
+  buyer_cost_share: 0.08
+
+  big_recent_order: false
+  market_noticed: 0.3
+
+  insider_buying_6mo: true
+  ceo_unrestricted_equity_usd: 8000000
+  insider_pct_of_market_cap: 0.01
+
+  usg_customer_or_grant: true
+  usg_supports_peers: true
+  us_centric_operations: true
+
+  higher_price_new_products: false
+
+  net_debt_to_ebitda: 3.5
+
+  ceo_years_in_role: 1.5
+
+  top_holder_quality: 0.5
+  top_holder_avg_holding_years: 2.0
+
+  analyst_count: 35
+  coverage_momentum: 0.2
+  english_twitter_presence: 0.5
+  chinese_channel_presence: 0.3
+  story_in_one_sentence: 0.3
+  front_page_makes_sense: 0.5
+  has_active_twitter: true
+  commodity_to_growth_transition: 0.2
+
+  smart_fund_accumulation: 0.3
+  confirmed_news_step_function: false
+  credible_rumor_active: 0.2
+
+downside:
+  revenue_concentration_top_client: 0.08
+  revenue_concentration_top5: 0.35
+  next_gen_replacement_risk: 0.6
+  tech_replaceability: 0.7
+  supplier_squeeze_risk: 0.2
+  tariff_fragility: 0.3
+  export_restriction_fragility: 0.4
+  high_margin_low_moat: 0.0
+  competitive_gap_months: 0
+  float_forced_seller_risk: 0.3
+
+price_action:
+  iv_regime: 0.4
+  options_flow_bullish: 0.3
+  short_interest: 0.05
+  yuan_demand: 0.1
+  cds_default_rate: 0.02
+  hy_debt_volume: 0.4
+  otm_call_oi_surge: 0.2
+  leaps_being_bought: false
+  put_oi_insider_signal: 0.5
+  trend_filter: 0.2

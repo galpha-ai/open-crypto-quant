@@ -1,0 +1,87 @@
+# Vertiv — AI datacenter power/cooling play (illustrative only).
+ticker: VRT
+name: Vertiv Holdings
+as_of: 2026-04-01
+conviction: 0.7
+
+signals:
+  jurisdiction_risk: 0.8
+  single_point_of_failure: false
+  tariff_fragility: true     # global supply chain
+
+  product_one_of_a_kind: false
+  product_highest_growth: false
+  product_largest_share: false   # fragmented with SMCI, Schneider, etc.
+  leadership_duration_years: 2.0
+  sector_growth_rate: 0.35
+
+  significant_physical_assets: true
+  entrant_build_time_months: 12
+  talent_market_tight: 300000
+
+  datacenter_elasticity: 9.0
+  per_machine_elasticity: 2.5
+
+  can_fill_10x_one_year: false
+  currently_backlogged: true
+
+  gross_margin: 0.36
+
+  buyer_cost_share: 0.03
+
+  big_recent_order: true
+  market_noticed: 0.8
+
+  insider_buying_6mo: false
+  ceo_unrestricted_equity_usd: 40000000
+  insider_pct_of_market_cap: 0.015
+
+  usg_customer_or_grant: false
+  usg_supports_peers: true
+  us_centric_operations: true
+
+  higher_price_new_products: false
+
+  net_debt_to_ebitda: 1.2
+
+  ceo_years_in_role: 5.0
+
+  top_holder_quality: 0.4
+  top_holder_avg_holding_years: 1.0
+
+  analyst_count: 22
+  coverage_momentum: 0.8
+  english_twitter_presence: 0.6
+  chinese_channel_presence: 0.2
+  story_in_one_sentence: 0.8     # "picks-and-shovels for AI datacenters"
+  front_page_makes_sense: 0.8
+  has_active_twitter: true
+  commodity_to_growth_transition: 0.8
+
+  smart_fund_accumulation: 0.7
+  confirmed_news_step_function: false
+  credible_rumor_active: 0.4
+
+downside:
+  revenue_concentration_top_client: 0.12
+  revenue_concentration_top5: 0.40
+  next_gen_replacement_risk: 0.25    # liquid cooling could reshape thermal stack
+  tech_replaceability: 0.5
+  supplier_squeeze_risk: 0.3
+  tariff_fragility: 0.55
+  export_restriction_fragility: 0.1
+  high_margin_low_moat: 0.0
+  competitive_gap_months: 6
+  float_forced_seller_risk: 0.4
+
+price_action:
+  iv_regime: 0.8
+  options_flow_bullish: 0.7
+  short_interest: 0.08
+  yuan_demand: 0.2
+  cds_default_rate: 0.012
+  hy_debt_volume: 0.7
+  otm_call_oi_surge: 0.8
+  leaps_being_bought: true
+  put_oi_insider_signal: 0.3
+  trend_filter: 0.8

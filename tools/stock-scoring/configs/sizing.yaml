@@ -1,0 +1,113 @@
+# Bet-sizing and downside-risk model.
+#
+# Used after scoring + ranking to size positions. Governed by:
+#   (1) quality_score          – from rubric.yaml (higher = larger)
+#   (2) downside_risk          – this file (higher = smaller)
+#   (3) price_action_score     – entry timing (higher = larger)
+#   (4) conviction_override    – analyst 0..1 manual dial
+#
+# The final sizing formula is:
+#   raw_weight = quality_score * price_action_score * (1 - downside_risk)
+#              * conviction_override
+#   position_size = min(max_position_pct,
+#                       raw_weight / sum(raw_weights) * capital_deploy_pct)
+
+version: 1
+
+downside:
+  # Fragility signals. Each scored in [0, 1] (higher = more dangerous).
+  # Final downside_risk is the weighted average, capped at 1.0.
+  # "revenue-based" factors dominate per the spec.
+  factors:
+
+    revenue_concentration_top_client:
+      weight: 0.20
+      kind: bucket
+      buckets:
+        - { min: 0.40, score: 1.0 }   # >40% of revenue to one client = fatal
+        - { min: 0.25, score: 0.7 }
+        - { min: 0.15, score: 0.4 }
+        - { min: 0.05, score: 0.1 }
+        - { min: 0.00, score: 0.0 }
+      prompt: Top-client revenue share (decimal).
+
+    revenue_concentration_top5:
+      weight: 0.15
+      kind: bucket
+      buckets:
+        - { min: 0.80, score: 1.0 }
+        - { min: 0.60, score: 0.6 }
+        - { min: 0.40, score: 0.3 }
+        - { min: 0.00, score: 0.0 }
+      prompt: Top-5 client revenue share (decimal).
+
+    next_gen_replacement_risk:
+      weight: 0.15
+      kind: scale
+      prompt: >
+        Is someone visibly building a next-gen product that could cook this
+        (e.g. copper interconnect → silicon photonics)? 0.0 = unthreatened,
+        1.0 = clear displacement on a known timeline.
+
+    tech_replaceability:
+      weight: 0.10
+      kind: scale
+      prompt: Generic replaceability of the technology (0 = unique IP, 1 = commodity).
+
+    supplier_squeeze_risk:
+      weight: 0.10
+      kind: scale
+      prompt: >
+        Fragility to constrained-supplier competitive dynamics (e.g. TSMC
+        capacity allocation). 0.0 = diversified / priority customer,
+        1.0 = mercy of a single upstream gatekeeper.
+
+    tariff_fragility:
+      weight: 0.08
+      kind: scale
+      prompt: Fragility to tariff rate changes on inputs or finished goods.
+
+    export_restriction_fragility:
+      weight: 0.07
+      kind: scale
+      prompt: >
+        Fragility to export-control regimes (BIS rules, entity lists).
+        Score 1.0 if a single ruling could cut >20% of revenue.
+
+    high_margin_low_moat:
+      weight: 0.05
+      kind: bucket
+      buckets:
+        # Margins >70% in a low-innovation product invite step-function competition.
+        - { min: 0.70, score: 1.0 }
+        - { min: 0.55, score: 0.5 }
+        - { min: 0.00, score: 0.0 }
+      prompt: >
+        Gross margin IFF the product is low-development / easy-to-copy.
+        Leave blank / 0 if the margin is protected by real innovation.
+
+    competitive_gap_months:
+      weight: 0.05
+      kind: linear
+      min: 24.0
+      max: 0.0
+      invert: false
+      prompt: >
+        Lead over 2nd-best competitor in months. Longer = safer
+        (24+ months → 0 risk, 0 months → 1.0 risk).
+
+    float_forced_seller_risk:
+      weight: 0.05
+      kind: scale
+      prompt: >
+        Float-based downside. Any large holder likely to dump?
+        Forced sellers from blow-ups elsewhere? 0 = clean, 1 = overhang.
+
+sizing:
+  max_position_pct: 0.10            # cap any single name at 10% of book
+  capital_deploy_pct: 0.80          # deploy at most 80% across top list
+  min_quality_score: 0.55           # skip names below this score
+  top_n: 15                         # consider only top-N by quality
+  # If a dip is primarily meme-driven (fundamental intact), treat sell-offs
+  # as buyable. This dials up size when quality >> downside.
+  meme_dip_bonus: 0.20

@@ -1,0 +1,399 @@
+# AI / datacenter / semi stock scoring rubric.
+#
+# Structure
+# ---------
+#   categories (top-level pillars)
+#     - criteria (scoring themes)
+#       - signals (individual yes/no or bucketed questions)
+#
+# Weights
+# -------
+#   Weights are relative within each parent. Sibling weights do not have to
+#   sum to 1 — the scoring engine renormalizes before combining.
+#
+# Signal kinds
+# ------------
+#   bool           – input is true|false. Maps to 1.0 or 0.0.
+#                    Use `invert: true` to flip (i.e. "bad if true").
+#   bucket         – input is numeric. `buckets` is a list of
+#                    {max|min, score} rules evaluated in order.
+#   linear         – input is numeric. Linearly interpolates `min`→0 and
+#                    `max`→1. Use `invert: true` for "lower is better".
+#   scale          – input is a pre-scored float in [0, 1].
+#                    Use when a human analyst assigns a subjective score.
+#   categorical    – input is a string. `values` maps each label to a score.
+#
+# Missing inputs
+# --------------
+#   If a signal's input is missing it falls back to `default` (default 0.5,
+#   i.e. "unknown = neutral"). Flagged in the scorecard so the analyst can
+#   see coverage gaps rather than silently counting missing data as a pass.
+
+version: 1
+name: ai-dc-semi-rubric
+
+categories:
+
+  # ========================================================================
+  # FUNDAMENTAL SCORE (60%) – is this a durable, scaling, defensible
+  # business that benefits disproportionately from the AI/DC buildout?
+  # ========================================================================
+  fundamental:
+    weight: 0.60
+    criteria:
+
+      supply_chain:
+        name: Reliable Supply Chain
+        weight: 0.05
+        signals:
+          jurisdiction_risk:
+            kind: scale
+            prompt: >
+              Score jurisdiction risk of raw-material / upstream sourcing.
+              1.0 = US/allied democracies; 0.5 = mixed; 0.0 = sole-source
+              from hostile or sanctioned jurisdictions.
+          single_point_of_failure:
+            kind: bool
+            invert: true
+            prompt: Is there a single-source input that would halt production if lost?
+          tariff_fragility:
+            kind: bool
+            invert: true
+            prompt: >
+              Is COGS materially exposed (>10%) to a specific tariff regime
+              that could plausibly be raised?
+
+      star_business:
+        name: "\"Star\" Business"
+        weight: 0.20
+        # Product leadership 2/3, sector growth 1/3 (per rubric spec).
+        aggregation: weighted
+        signals:
+          product_one_of_a_kind:
+            kind: bool
+            weight: 2.0
+            group: product_leader
+            prompt: Is the product "one of a kind" – a category-defining offering?
+          product_highest_growth:
+            kind: bool
+            weight: 2.0
+            group: product_leader
+            prompt: >
+              Highest revenue growth rate on the market? (Enforce min-size
+              floor – ignore sub-scale companies with vanity growth rates.)
+          product_largest_share:
+            kind: bool
+            weight: 2.0
+            group: product_leader
+            prompt: Largest current market share in its product category?
+          leadership_duration_years:
+            kind: linear
+            min: 1.0
+            max: 5.0
+            weight: 2.0
+            group: product_leader
+            prompt: Years the company has held category leadership (1y→0, 5y→1).
+          sector_growth_rate:
+            kind: bucket
+            weight: 1.0
+            group: high_growth_sector
+            buckets:
+              - { min: 0.30, score: 1.0 }   # >=30% YoY sector growth
+              - { min: 0.15, score: 0.6 }
+              - { min: 0.05, score: 0.3 }
+              - { min: 0.00, score: 0.0 }   # commoditized / flat
+            prompt: Forward sector growth rate (expected CAGR, decimal – 0.30 = 30%).
+
+      barrier_to_entry:
+        name: Barrier to Entry
+        weight: 0.10
+        signals:
+          significant_physical_assets:
+            kind: bool
+            prompt: Fabs, specialized factories, or other hard-to-duplicate physical infra?
+          entrant_build_time_months:
+            kind: linear
+            min: 6.0
+            max: 36.0
+            prompt: Time for a skilled entrant to stand up competing capacity (months).
+          talent_market_tight:
+            kind: bucket
+            buckets:
+              - { min: 1000000, score: 1.0 }  # >$1M/yr for key engineers
+              - { min: 500000,  score: 0.6 }
+              - { min: 250000,  score: 0.3 }
+              - { min: 0,       score: 0.0 }
+            prompt: Median total comp for the specialist engineer this business needs (USD/yr).
+
+      embedded_nonlinearity:
+        name: Embedded Nonlinearity
+        weight: 0.10
+        signals:
+          datacenter_elasticity:
+            kind: linear
+            min: 1.0
+            max: 10.0
+            prompt: >
+              If datacenter count 10x's, demand on this product multiplies by N.
+              Enter N. (10 = linear, 100 = 10x superlinear, capped at 10 for score.)
+          per_machine_elasticity:
+            kind: linear
+            min: 1.0
+            max: 4.0
+            prompt: >
+              If machine size doubles, demand on this product multiplies by N.
+              Enter N. (2 = linear, 3+ = superlinear.)
+
+      scaling_capacity:
+        name: Ability to Profit from Scaling Demand
+        weight: 0.10
+        signals:
+          can_fill_10x_one_year:
+            kind: bool
+            prompt: >
+              If end demand 10x'd over the next 12 months, could they realistically
+              fill it (capex flexibility, yielded capacity, workforce, packaging)?
+          currently_backlogged:
+            kind: bool
+            prompt: >
+              Currently unable to fill existing demand within a reasonable lead time?
+              (Backlog is bullish here – it proves pricing power AND demand.)
+
+      robustness:
+        name: Robustness Against Shocks
+        weight: 0.05
+        signals:
+          gross_margin:
+            kind: bucket
+            buckets:
+              - { min: 0.70, score: 1.0 }
+              - { min: 0.55, score: 0.7 }
+              - { min: 0.40, score: 0.4 }
+              - { min: 0.20, score: 0.1 }
+              - { min: 0.00, score: 0.0 }
+            prompt: Gross margin (decimal, e.g. 0.72).
+
+      demand_inelastic:
+        name: Demand Inelastic
+        weight: 0.05
+        signals:
+          buyer_cost_share:
+            kind: bucket
+            buckets:
+              - { max: 0.001, score: 1.0 }   # <0.1% of buyer's spend
+              - { max: 0.01,  score: 0.5 }   # <1%
+              - { max: 0.05,  score: 0.2 }
+              - { max: 1.00,  score: 0.0 }   # >5%
+            prompt: >
+              Share of motivated buyer's total project cost spent on this product
+              (decimal, e.g. 0.004 = 0.4%).
+
+      recent_step_function:
+        name: Recent Step-Function in Demand
+        weight: 0.03
+        signals:
+          big_recent_order:
+            kind: bool
+            prompt: >
+              Has there been a publicly disclosed step-function purchase
+              (megadeal, hyperscaler backlog, sovereign order) in the last 90 days?
+          market_noticed:
+            kind: scale
+            prompt: >
+              How much did the market notice? 0.0 = buried in a filing,
+              1.0 = front-page Bloomberg, priced in but still re-rating.
+
+      inside_ownership:
+        name: Inside Ownership
+        weight: 0.10
+        signals:
+          insider_buying_6mo:
+            kind: bool
+            prompt: Has the CEO or C-suite open-market-bought in the last 6 months?
+          ceo_unrestricted_equity_usd:
+            kind: bucket
+            buckets:
+              - { min: 10000000, score: 1.0 }
+              - { min: 3000000,  score: 0.5 }
+              - { min: 0,        score: 0.0 }
+            prompt: CEO non-locked equity (USD).
+          insider_pct_of_market_cap:
+            kind: bucket
+            buckets:
+              - { min: 0.05, score: 1.0 }   # >=5%
+              - { min: 0.02, score: 0.5 }
+              - { min: 0.00, score: 0.0 }
+            prompt: Board + management ownership as fraction of market cap.
+
+      defense_military:
+        name: Defense / Military Applications
+        weight: 0.05
+        signals:
+          usg_customer_or_grant:
+            kind: bool
+            prompt: Is the US government a current customer or grantor?
+          usg_supports_peers:
+            kind: bool
+            prompt: Is USG backing similar businesses (policy tailwind even if not yet direct)?
+          us_centric_operations:
+            kind: bool
+            prompt: US-headquartered with majority of critical ops onshore or in allied jurisdictions?
+
+      optionality:
+        name: Additional Optionality
+        weight: 0.03
+        signals:
+          higher_price_new_products:
+            kind: bool
+            prompt: >
+              If their product prices materially increased, do they have adjacent
+              products or assets (idle inventory, second-tier lines) that become
+              economically viable? (Free call option on new SKUs.)
+
+      debt_load:
+        name: Debt Load
+        weight: 0.04
+        signals:
+          net_debt_to_ebitda:
+            kind: linear
+            min: 0.0
+            max: 4.0
+            invert: true
+            prompt: Net debt / trailing EBITDA (0 = best, 4+ = bad).
+
+      ceo_tenure:
+        name: CEO Tenure
+        weight: 0.04
+        signals:
+          ceo_years_in_role:
+            kind: bucket
+            buckets:
+              - { min: 5.0, score: 1.0 }
+              - { min: 3.0, score: 0.6 }
+              - { min: 1.0, score: 0.3 }
+              - { min: 0.0, score: 0.0 }
+            prompt: Years the current CEO has been in control.
+
+      top_holder_tenure:
+        name: Average Holding Period of Top Holders
+        weight: 0.05
+        signals:
+          top_holder_quality:
+            kind: scale
+            prompt: >
+              13F review. 1.0 = long-duration high-quality holders (Baillie Gifford,
+              Berkshire-style). 0.5 = mixed. 0.0 = dominated by fast-money / pods.
+          top_holder_avg_holding_years:
+            kind: linear
+            min: 0.5
+            max: 4.0
+            prompt: Weighted average top-10 holder tenure (years).
+
+  # ========================================================================
+  # MARKETING / MEMABILITY (20%) – how ready is the market to re-rate this?
+  # Low P/E → High P/E transitions happen when the story becomes legible.
+  # ========================================================================
+  marketing:
+    weight: 0.20
+    criteria:
+
+      sell_side_coverage:
+        name: Ticker Presence in Institutional Channels
+        weight: 0.10
+        signals:
+          analyst_count:
+            kind: linear
+            min: 0.0
+            max: 25.0
+            prompt: Number of sell-side analysts covering the name.
+          coverage_momentum:
+            kind: scale
+            prompt: >
+              Is coverage momentum up (new initiations, target raises)? 1.0 = yes,
+              strong and rising. 0.0 = coverage going dormant.
+
+      social_presence:
+        name: Ticker Presence in Social Channels
+        weight: 0.10
+        signals:
+          english_twitter_presence:
+            kind: scale
+            prompt: English / Twitter / X visibility (retail + fintwit).
+          chinese_channel_presence:
+            kind: scale
+            prompt: Chinese-language channel visibility (Weibo / Xueqiu / WeChat).
+
+      ceo_interview_simplicity:
+        name: CEO Interview / Story Simplicity
+        weight: 0.075
+        signals:
+          story_in_one_sentence:
+            kind: scale
+            prompt: >
+              Can the story be told in one sentence a PM will remember? 1.0 = yes,
+              0.0 = requires a deck. Complexity = failure here.
+
+      website_clarity:
+        name: Front-Page Clarity
+        weight: 0.075
+        signals:
+          front_page_makes_sense:
+            kind: scale
+            prompt: Does the front page of their site clearly say what they sell and to whom?
+
+      twitter_account:
+        name: Active Twitter/X Account
+        weight: 0.03
+        signals:
+          has_active_twitter:
+            kind: bool
+            prompt: Is there an active official Twitter/X account?
+
+      brand_value:
+        name: Brand / Re-rating Potential
+        weight: 0.05
+        signals:
+          commodity_to_growth_transition:
+            kind: scale
+            prompt: >
+              Is the market beginning to perceive this as a growth business
+              instead of a commodity? (Re-rating from low-P/E to high-P/E regime.)
+              1.0 = transition visibly in progress, 0.0 = still seen as commodity.
+
+  # ========================================================================
+  # RECENT INFORMATION DEVELOPMENT (20%) – is the setup fresh?
+  # ========================================================================
+  recent:
+    weight: 0.20
+    criteria:
+
+      smart_money_flow:
+        name: Smart Money Entering
+        weight: 0.50
+        signals:
+          smart_fund_accumulation:
+            kind: scale
+            prompt: >
+              Are known smart hedge funds accumulating via credible channels
+              (13Fs, prime broker chatter, dark-pool prints)? 1.0 = clear
+              accumulation. 0.0 = no signal or smart money exiting.
+
+      step_function_business_change:
+        name: Step-Function Business Change
+        weight: 0.30
+        signals:
+          confirmed_news_step_function:
+            kind: bool
+            prompt: >
+              Has a confirmed news event (contract, capacity unlock, design win)
+              created a step-function change in forward earnings power?
+
+      rumor_quality:
+        name: Rumor Quality
+        weight: 0.20
+        signals:
+          credible_rumor_active:
+            kind: scale
+            prompt: >
+              Is there a live, credible rumor (high quality source, narrow circle)
+              of an upcoming catalyst? 0.0 = none, 1.0 = multiple independent desks.

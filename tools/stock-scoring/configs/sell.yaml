@@ -1,0 +1,39 @@
+# Sell model. Four triggers, any of which fires a sell signal.
+#
+# Triggers:
+#   1. quality_rank_drop   – monthly check. Sell if ticker falls out of
+#                             top quality_rank_percentile of universe.
+#   2. price_rank_drop     – weekly check. Sell if ticker falls out of
+#                             top price_rank_percentile.
+#   3. sell_catalyst_news  – immediate. Fires on a catalyst-news event
+#                             (handled as a boolean input from the
+#                             separate news model).
+#   4. manual_override     – "Bill gets nervous". Human dial.
+#
+# A sell signal includes the trigger name, severity (full / trim), and
+# a short reason so the journal is audit-able.
+
+version: 1
+
+triggers:
+  quality_rank:
+    check_frequency: monthly
+    percentile_threshold: 0.10     # must stay in top 10%
+    action: full_sell
+    grace_period_days: 7           # give 1 week for noise / reshuffle
+
+  price_rank:
+    check_frequency: weekly
+    percentile_threshold: 0.20     # must stay in top 20%
+    action: full_sell
+    grace_period_days: 14
+
+  catalyst_news:
+    check_frequency: event_driven
+    action: full_sell
+    grace_period_days: 0
+
+  manual_override:
+    check_frequency: on_demand
+    action: full_sell
+    grace_period_days: 0

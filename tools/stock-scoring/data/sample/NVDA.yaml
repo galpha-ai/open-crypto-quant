@@ -1,0 +1,106 @@
+# Sample scorecard input. Values are illustrative ONLY for engine testing;
+# no investment opinion is expressed or implied.
+ticker: NVDA
+name: NVIDIA
+as_of: 2026-04-01
+notes: "reference case — strong on nearly every axis"
+conviction: 1.0
+meme_dip: false
+
+signals:
+  # supply_chain
+  jurisdiction_risk: 0.6          # TSMC concentration = Taiwan risk
+  single_point_of_failure: true   # TSMC advanced nodes
+  tariff_fragility: false
+
+  # star_business
+  product_one_of_a_kind: true
+  product_highest_growth: true
+  product_largest_share: true
+  leadership_duration_years: 5.0
+  sector_growth_rate: 0.45
+
+  # barrier_to_entry
+  significant_physical_assets: false  # fabless
+  entrant_build_time_months: 36
+  talent_market_tight: 900000
+
+  # embedded_nonlinearity
+  datacenter_elasticity: 10.0
+  per_machine_elasticity: 3.0
+
+  # scaling_capacity
+  can_fill_10x_one_year: false   # TSMC-bottlenecked
+  currently_backlogged: true
+
+  # robustness
+  gross_margin: 0.75
+
+  # demand_inelastic
+  buyer_cost_share: 0.25   # GPU is large share of DC build — penalized
+
+  # recent_step_function
+  big_recent_order: true
+  market_noticed: 0.9
+
+  # inside_ownership
+  insider_buying_6mo: false
+  ceo_unrestricted_equity_usd: 3000000000
+  insider_pct_of_market_cap: 0.035
+
+  # defense_military
+  usg_customer_or_grant: true
+  usg_supports_peers: true
+  us_centric_operations: true
+
+  # optionality
+  higher_price_new_products: true
+
+  # debt_load
+  net_debt_to_ebitda: 0.1
+
+  # ceo_tenure
+  ceo_years_in_role: 30.0
+
+  # top_holder_tenure
+  top_holder_quality: 0.7
+  top_holder_avg_holding_years: 2.5
+
+  # marketing
+  analyst_count: 55
+  coverage_momentum: 0.9
+  english_twitter_presence: 1.0
+  chinese_channel_presence: 0.9
+  story_in_one_sentence: 1.0
+  front_page_makes_sense: 1.0
+  has_active_twitter: true
+  commodity_to_growth_transition: 0.7
+
+  # recent
+  smart_fund_accumulation: 0.5
+  confirmed_news_step_function: true
+  credible_rumor_active: 0.3
+
+downside:
+  revenue_concentration_top_client: 0.20
+  revenue_concentration_top5: 0.65
+  next_gen_replacement_risk: 0.15
+  tech_replaceability: 0.1
+  supplier_squeeze_risk: 0.7      # TSMC allocation
+  tariff_fragility: 0.3
+  export_restriction_fragility: 0.6   # BIS China rules
+  high_margin_low_moat: 0.0
+  competitive_gap_months: 18
+  float_forced_seller_risk: 0.1
+
+price_action:
+  iv_regime: 0.7
+  options_flow_bullish: 0.8
+  short_interest: 0.03
+  yuan_demand: 0.9
+  cds_default_rate: 0.002
+  hy_debt_volume: 0.9
+  otm_call_oi_surge: 0.7
+  leaps_being_bought: true
+  put_oi_insider_signal: 0.1
+  trend_filter: 0.9

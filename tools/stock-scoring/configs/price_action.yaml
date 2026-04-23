@@ -1,0 +1,77 @@
+# Price-action filter. Used AFTER rubric scoring to rank entry timing.
+#
+# Produces a price_action_score in [0, 1]. This feeds into bet sizing and
+# the weekly price-rank sell trigger.
+
+version: 1
+
+factors:
+
+  iv_regime:
+    weight: 0.10
+    kind: scale
+    prompt: >
+      Implied vol regime. 1.0 = IV elevated enough to reward long vol but
+      not a crisis spike. 0.0 = dead IV (no positioning flow) or crisis.
+
+  options_flow_bullish:
+    weight: 0.15
+    kind: scale
+    prompt: Net options flow skewed bullish (call premium > put premium)?
+
+  short_interest:
+    weight: 0.10
+    kind: bucket
+    buckets:
+      - { min: 0.20, score: 1.0 }   # >=20% short int → squeeze fuel
+      - { min: 0.10, score: 0.6 }
+      - { min: 0.05, score: 0.3 }
+      - { min: 0.00, score: 0.1 }
+    prompt: Short interest as fraction of float.
+
+  yuan_demand:
+    weight: 0.05
+    kind: scale
+    prompt: Relative demand for ticker from Chinese retail / institutional channels.
+
+  cds_default_rate:
+    weight: 0.05
+    kind: linear
+    min: 0.0
+    max: 0.05
+    invert: true
+    prompt: Implied CDS default probability (higher = penalty).
+
+  hy_debt_volume:
+    weight: 0.05
+    kind: scale
+    prompt: >
+      Trading volume of their high-yield debt. Proxy for credit distress.
+      Score HIGH when credit is calm, LOW if HY volume is spiking down.
+
+  otm_call_oi_surge:
+    weight: 0.15
+    kind: scale
+    prompt: >
+      Surge of open interest on out-of-the-money calls (>=30 delta).
+      1.0 = major unusual build, 0.0 = flat.
+
+  leaps_being_bought:
+    weight: 0.10
+    kind: bool
+    prompt: Evidence of LEAP (long-dated call) accumulation?
+
+  put_oi_insider_signal:
+    weight: 0.05
+    kind: scale
+    prompt: >
+      Unusually high open interest on puts can signal insider-info trades.
+      Score HIGH (risk) if so. Gets inverted before combining (more put OI = lower PA score).
+    invert: true
+
+  trend_filter:
+    weight: 0.20
+    kind: scale
+    prompt: >
+      Trend-following filter. 1.0 = above rising 50/200 DMA with healthy
+      breadth. 0.0 = in a clear downtrend. (Don't fight the chart.)
